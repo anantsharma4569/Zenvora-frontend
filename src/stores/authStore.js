@@ -33,11 +33,11 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async register(email, full_name, password) {
+    async register(email, full_name, password, phone) {
       this.loading = true
       this.error = null
       try {
-        const data = await frappeCall.postMethod('zenvora.api.auth.register', { email, full_name, password })
+        const data = await frappeCall.postMethod('zenvora.api.auth.register', { email, full_name, password, phone })
         setTokens(data)
         this.user = data.user
       } catch (e) {

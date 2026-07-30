@@ -10,6 +10,7 @@ const router = useRouter()
 
 const full_name = ref('')
 const email = ref('')
+const phone = ref('')
 const password = ref('')
 const submitting = ref(false)
 const error = ref(null)
@@ -18,7 +19,7 @@ async function handleSubmit() {
   submitting.value = true
   error.value = null
   try {
-    await auth.register(email.value, full_name.value, password.value)
+    await auth.register(email.value, full_name.value, password.value, phone.value)
     router.push(route.query.redirect || '/')
   } catch (e) {
     error.value = e.message
@@ -53,6 +54,17 @@ async function handleSubmit() {
           type="email"
           required
           autocomplete="email"
+          class="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 focus:border-ink focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-ink" for="phone">Phone Number <span class="text-stone-400">(optional)</span></label>
+        <input
+          id="phone"
+          v-model="phone"
+          type="tel"
+          autocomplete="tel"
           class="mt-1 w-full rounded-md border border-stone-300 px-3 py-2 focus:border-ink focus:outline-none"
         />
       </div>
