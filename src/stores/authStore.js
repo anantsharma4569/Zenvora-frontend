@@ -10,7 +10,11 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    isAuthenticated: () => !!getAccessToken(),
+    // Deriving this from `state.user` (not a direct localStorage read) is what
+    // makes it reactive — Vue's computed caching can't detect localStorage
+    // changes, so a getter reading it directly would never update the UI
+    // after login/logout.
+    isAuthenticated: (state) => !!state.user,
   },
 
   actions: {
