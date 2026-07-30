@@ -1,19 +1,33 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { Star } from '@lucide/vue'
 import { formatCurrency } from '@/utils/currency'
 import { useCartStore } from '@/stores/cartStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const props = defineProps({
   product: { type: Object, required: true },
 })
 
 const cart = useCartStore()
+const auth = useAuthStore()
+const router = useRouter()
+const route = useRoute()
 
-function handleAddToCart(e) {
+async function handleAddToCart(e) {
   e.preventDefault()
   e.stopPropagation()
-  cart.addItem(props.product)
+
+  if (!auth.isAuthenticated) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
+  try {
+    await cart.addItem(props.product)
+  } catch {
+    // errors surface via cart.error on the bag page; the card itself stays quiet
+  }
 }
 </script>
 

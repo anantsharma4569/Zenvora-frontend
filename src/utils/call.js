@@ -28,7 +28,13 @@ async function rawRequest(path, { method = 'GET', body, params } = {}) {
 
   const token = getAccessToken()
   const headers = { 'Content-Type': 'application/json' }
-  if (token) headers.Authorization = `Bearer ${token}`
+  // Frappe core reserves the `Authorization: Bearer` header for its own OAuth2
+  // handling — even though our token isn't a valid Frappe OAuth token, core's
+  // attempt to process it consumes the request body stream, so any POST that
+  // combines a JSON body with `Authorization: Bearer` arrives with an empty
+  // frappe.form_dict server-side. A distinct header name avoids that pipeline
+  // entirely.
+  if (token) headers['X-Zenvora-Token'] = token
 
   const res = await fetch(url, {
     method,

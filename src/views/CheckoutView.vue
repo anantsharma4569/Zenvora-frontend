@@ -22,9 +22,9 @@ async function placeOrder() {
   try {
     await createSalesOrder({
       customer: customer.value,
-      items: cart.items.map((i) => ({ item_code: i.item_code, qty: i.qty, rate: i.rate })),
+      items: cart.items.map((i) => ({ item_code: i.product, qty: i.qty, rate: i.price })),
     })
-    cart.clearCart()
+    await cart.clearCart()
     router.push('/')
   } catch (e) {
     error.value = e.message

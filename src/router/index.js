@@ -10,7 +10,12 @@ const routes = [
     component: () => import('@/views/ProductDetailView.vue'),
     props: true,
   },
-  { path: '/cart', name: 'cart', component: () => import('@/views/CartView.vue') },
+  {
+    path: '/cart',
+    name: 'cart',
+    component: () => import('@/views/CartView.vue'),
+    meta: { requiresAuth: true },
+  },
   {
     path: '/checkout',
     name: 'checkout',

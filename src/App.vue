@@ -7,9 +7,9 @@ import { useAuthStore } from '@/stores/authStore'
 
 const cart = useCartStore()
 const auth = useAuthStore()
+// auth is already hydrated in main.js before the app mounts
 onMounted(() => {
-  cart.hydrate()
-  auth.hydrate()
+  if (auth.isAuthenticated) cart.fetchCart()
 })
 </script>
 

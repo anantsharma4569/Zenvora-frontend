@@ -1,58 +1,59 @@
 import { defineStore } from 'pinia'
+import { frappeCall } from '@/utils/call'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
-    items: [], // { item_code, item_name, image, rate, qty }
+    // { name, product, product_name, image, price, qty, color, size }
+    items: [],
+    loading: false,
+    error: null,
   }),
 
   getters: {
     itemCount: (state) => state.items.reduce((sum, i) => sum + i.qty, 0),
-    subtotal: (state) => state.items.reduce((sum, i) => sum + i.rate * i.qty, 0),
+    subtotal: (state) => state.items.reduce((sum, i) => sum + i.price * i.qty, 0),
     isEmpty: (state) => state.items.length === 0,
   },
 
   actions: {
-    addItem(product, qty = 1) {
-      const existing = this.items.find((i) => i.item_code === product.name)
-      if (existing) {
-        existing.qty += qty
-      } else {
-        this.items.push({
-          item_code: product.name,
-          item_name: product.product_name,
-          image: product.image_1,
-          rate: product.price,
-          qty,
-        })
+    async fetchCart() {
+      this.loading = true
+      this.error = null
+      try {
+        this.items = await frappeCall.method('zenvora.api.cart.get_cart')
+      } catch (e) {
+        this.error = e.message
+      } finally {
+        this.loading = false
       }
-      this.persist()
     },
 
-    updateQty(item_code, qty) {
-      const item = this.items.find((i) => i.item_code === item_code)
-      if (!item) return
-      if (qty <= 0) return this.removeItem(item_code)
-      item.qty = qty
-      this.persist()
+    // product: the Product doc (needs .name); variant: { color, size }
+    async addItem(product, qty = 1, variant = {}) {
+      this.items = await frappeCall.postMethod('zenvora.api.cart.add_to_cart', {
+        product: product.name,
+        qty,
+        color: variant.color || undefined,
+        size: variant.size || undefined,
+      })
     },
 
-    removeItem(item_code) {
-      this.items = this.items.filter((i) => i.item_code !== item_code)
-      this.persist()
+    async updateQty(name, qty) {
+      this.items = await frappeCall.postMethod('zenvora.api.cart.update_cart_item', { name, qty })
     },
 
-    clearCart() {
+    async removeItem(name) {
+      this.items = await frappeCall.postMethod('zenvora.api.cart.remove_from_cart', { name })
+    },
+
+    async clearCart() {
+      this.items = await frappeCall.postMethod('zenvora.api.cart.clear_cart')
+    },
+
+    // called on logout — the bag belongs to the account, not the browser
+    reset() {
       this.items = []
-      this.persist()
-    },
-
-    persist() {
-      localStorage.setItem('zenvora_cart', JSON.stringify(this.items))
-    },
-
-    hydrate() {
-      const saved = localStorage.getItem('zenvora_cart')
-      if (saved) this.items = JSON.parse(saved)
+      this.error = null
     },
   },
 })
