@@ -2,15 +2,17 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cartStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useProducts } from '@/composables/useProducts'
 import { formatCurrency } from '@/utils/currency'
 import Button from '@/components/common/Button.vue'
 
 const cart = useCartStore()
+const auth = useAuthStore()
 const { createSalesOrder } = useProducts()
 const router = useRouter()
 
-const customer = ref('')
+const customer = ref(auth.user?.full_name || '')
 const placing = ref(false)
 const error = ref(null)
 

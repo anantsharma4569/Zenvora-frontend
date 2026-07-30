@@ -3,9 +3,14 @@ import { onMounted } from 'vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import { useCartStore } from '@/stores/cartStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const cart = useCartStore()
-onMounted(() => cart.hydrate())
+const auth = useAuthStore()
+onMounted(() => {
+  cart.hydrate()
+  auth.hydrate()
+})
 </script>
 
 <template>
