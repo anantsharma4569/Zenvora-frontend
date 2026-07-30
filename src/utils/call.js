@@ -33,6 +33,11 @@ async function rawRequest(path, { method = 'GET', body, params } = {}) {
   const res = await fetch(url, {
     method,
     headers,
+    // This API is pure bearer-token auth. fetch() sends cookies by default
+    // for same-origin requests (credentials: 'same-origin'), which can drag
+    // in a stale Frappe session cookie from an unrelated Desk/website login
+    // and trip its cookie-based CSRF check before our token is ever checked.
+    credentials: 'omit',
     body: body ? JSON.stringify(body) : undefined,
   })
   const data = await res.json().catch(() => ({}))
