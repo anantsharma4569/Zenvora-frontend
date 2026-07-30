@@ -1,5 +1,11 @@
 <script setup>
+import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useCategories } from '@/composables/useCategories'
+
+const { categories, loading, fetchCategories } = useCategories()
+
+onMounted(() => fetchCategories())
 </script>
 
 <template>
@@ -17,5 +23,22 @@ import { RouterLink } from 'vue-router'
     >
       Shop the Collection
     </RouterLink>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 pb-24">
+    <h2 class="text-sm font-medium uppercase tracking-widest text-stone-500">Shop by Category</h2>
+
+    <p v-if="loading" class="mt-4 text-stone-500">Loading categories…</p>
+
+    <div v-else class="mt-4 flex flex-wrap gap-3">
+      <RouterLink
+        v-for="cat in categories"
+        :key="cat.name"
+        :to="{ path: '/shop', query: { category: cat.name } }"
+        class="rounded-full border border-stone-300 px-5 py-2 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink hover:text-white"
+      >
+        {{ cat.category_name }}
+      </RouterLink>
+    </div>
   </section>
 </template>
