@@ -13,15 +13,15 @@ export const useCartStore = defineStore('cart', {
 
   actions: {
     addItem(product, qty = 1) {
-      const existing = this.items.find((i) => i.item_code === product.item_code)
+      const existing = this.items.find((i) => i.item_code === product.name)
       if (existing) {
         existing.qty += qty
       } else {
         this.items.push({
-          item_code: product.item_code,
-          item_name: product.item_name,
-          image: product.image,
-          rate: product.standard_rate,
+          item_code: product.name,
+          item_name: product.product_name,
+          image: product.image_1,
+          rate: product.price,
           qty,
         })
       }

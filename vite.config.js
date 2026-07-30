@@ -13,7 +13,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://zenvora.localhost:8001', // your bench site
+        target: 'http://127.0.0.1:8001', // your bench site
+        changeOrigin: true,
+      },
+      '/files': {
+        target: 'http://127.0.0.1:8001', // uploaded Product images
         changeOrigin: true,
       },
     },

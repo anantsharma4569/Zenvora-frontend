@@ -1,21 +1,22 @@
 import { ref } from 'vue'
 import { frappeCall } from '@/utils/call'
 
+const PRODUCT_FIELDS = [
+  'name', 'product_name', 'price', 'compare_at_price',
+  'on_sale', 'rating', 'review_count', 'image_1', 'image_2', 'description',
+]
+
 export function useProducts() {
   const products = ref([])
   const loading = ref(false)
   const error = ref(null)
 
-  async function fetchProducts({ itemGroup, limit = 20, start = 0 } = {}) {
+  async function fetchProducts({ limit = 20, start = 0 } = {}) {
     loading.value = true
     error.value = null
     try {
-      products.value = await frappeCall.getList('Item', {
-        fields: JSON.stringify([
-          'name', 'item_name', 'item_code', 'description',
-          'standard_rate', 'image', 'item_group',
-        ]),
-        filters: itemGroup ? JSON.stringify([['item_group', '=', itemGroup]]) : undefined,
+      products.value = await frappeCall.getList('Product', {
+        fields: JSON.stringify(PRODUCT_FIELDS),
         limit_page_length: limit,
         limit_start: start,
       })
@@ -26,8 +27,8 @@ export function useProducts() {
     }
   }
 
-  async function fetchProduct(itemCode) {
-    return frappeCall.getDoc('Item', itemCode)
+  async function fetchProduct(name) {
+    return frappeCall.getDoc('Product', name)
   }
 
   async function createSalesOrder(payload) {
