@@ -88,10 +88,12 @@ function closeMobileMenu() {
       <div class="flex items-center gap-5">
         <RouterLink
           :to="auth.isAuthenticated ? '/account' : '/login'"
-          class="text-ink"
-          :aria-label="auth.isAuthenticated ? 'My Account' : 'Log In'"
+          class="flex items-center gap-2 text-ink"
         >
           <User class="h-5 w-5" />
+          <span class="hidden text-sm font-medium sm:inline">
+            {{ auth.isAuthenticated ? auth.user?.full_name : 'Log In' }}
+          </span>
         </RouterLink>
 
         <RouterLink to="/cart" class="relative flex items-center gap-2 text-ink">
