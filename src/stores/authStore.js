@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { frappeCall } from '@/utils/call'
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '@/utils/authTokens'
+import { useCartStore } from '@/stores/cartStore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -18,13 +19,14 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async login(usr, pwd) {
+    async login(email, password) {
       this.loading = true
       this.error = null
       try {
-        const data = await frappeCall.postMethod('zenvora.api.auth.login', { usr, pwd })
+        const data = await frappeCall.postMethod('zenvora.api.auth.login', { email, password })
         setTokens(data)
         this.user = data.user
+        useCartStore().fetchCart()
       } catch (e) {
         this.error = e.message
         throw e
@@ -40,6 +42,7 @@ export const useAuthStore = defineStore('auth', {
         const data = await frappeCall.postMethod('zenvora.api.auth.register', { email, full_name, password, phone })
         setTokens(data)
         this.user = data.user
+        useCartStore().fetchCart()
       } catch (e) {
         this.error = e.message
         throw e
@@ -56,6 +59,7 @@ export const useAuthStore = defineStore('auth', {
       }
       clearTokens()
       this.user = null
+      useCartStore().reset()
     },
 
     async fetchMe() {
