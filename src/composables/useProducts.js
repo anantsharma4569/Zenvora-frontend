@@ -32,10 +32,5 @@ export function useProducts() {
     return frappeCall.getDoc('Product', name)
   }
 
-  async function createSalesOrder(payload) {
-    // payload: { customer, items: [{ item_code, qty, rate }], ... }
-    return frappeCall.createDoc('Sales Order', payload)
-  }
-
-  return { products, loading, error, fetchProducts, fetchProduct, createSalesOrder }
+  return { products, loading, error, fetchProducts, fetchProduct }
 }
