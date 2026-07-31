@@ -96,7 +96,28 @@ async function request(path, opts = {}) {
   return data.message ?? data.data ?? data
 }
 
+async function uploadFile(file) {
+  const token = getAccessToken()
+  const headers = {}
+  if (token) headers['X-Zenvora-Token'] = token
+
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('is_private', '0')
+
+  const res = await fetch(new URL('/api/method/upload_file', window.location.origin), {
+    method: 'POST',
+    headers, // no Content-Type — the browser sets the multipart boundary itself
+    credentials: 'omit',
+    body: formData,
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(extractErrorMessage(data))
+  return data.message.file_url
+}
+
 export const frappeCall = {
+  uploadFile,
   // GET /api/resource/:doctype
   getList: (doctype, params) => request(`/api/resource/${doctype}`, { params }),
   // GET /api/resource/:doctype/:name

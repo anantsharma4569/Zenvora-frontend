@@ -6,6 +6,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { formatCurrency } from '@/utils/currency'
 import Button from '@/components/common/Button.vue'
+import ReviewSection from '@/components/product/ReviewSection.vue'
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -158,5 +159,7 @@ async function handleAddToCart() {
         </ul>
       </div>
     </div>
+
+    <ReviewSection v-if="product" :product="product.name" />
   </section>
 </template>
