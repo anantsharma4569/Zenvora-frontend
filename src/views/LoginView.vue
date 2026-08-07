@@ -69,5 +69,11 @@ async function handleSubmit() {
         Sign up
       </RouterLink>
     </p>
+    <p class="mt-2 text-sm text-stone-500">
+      In a hurry?
+      <RouterLink :to="{ path: '/verify', query: route.query }" class="text-pine-600 underline">
+        Continue with a code instead
+      </RouterLink>
+    </p>
   </section>
 </template>

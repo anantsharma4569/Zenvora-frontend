@@ -51,8 +51,16 @@ const inStock = ref(true)
 onMounted(async () => {
   if (auth.isAuthenticated) wishlist.ensureLoaded()
 
+  // Guards every write below: if the user has already navigated away from
+  // this product (e.g. clicked the logo before the fetch resolved), this
+  // stale response should neither overwrite the new page's document.title
+  // nor flash old product data into state.
+  const requestedId = props.id
+
   try {
-    product.value = await fetchProduct(props.id)
+    const fetchedProduct = await fetchProduct(props.id)
+    if (props.id !== requestedId) return
+    product.value = fetchedProduct
 
     // Gallery Images (product manager can add as many as they like) takes
     // priority; fall back to the primary/secondary pair for older products
@@ -66,13 +74,14 @@ onMounted(async () => {
     document.title = `${product.value.product_name} — Zenvora`
 
     const stockInfo = await getProductStock(props.id)
+    if (props.id !== requestedId) return
     sizes.value = stockInfo.sizes
     stockBySize.value = stockInfo.stock
     inStock.value = stockInfo.in_stock
   } catch (e) {
-    error.value = e.message
+    if (props.id === requestedId) error.value = e.message
   } finally {
-    loading.value = false
+    if (props.id === requestedId) loading.value = false
   }
 })
 
@@ -97,15 +106,20 @@ function validateSelection() {
   return true
 }
 
-async function handleAddToCart() {
-  if (!validateSelection()) return
+const addingToBag = ref(false)
 
+async function handleAddToCart() {
+  if (addingToBag.value || !validateSelection()) return
+
+  addingToBag.value = true
   try {
     await cart.addItem(product.value, 1, { color: selectedColor.value, size: selectedSize.value })
     added.value = true
     setTimeout(() => (added.value = false), 1500)
   } catch (e) {
     addError.value = e.message
+  } finally {
+    addingToBag.value = false
   }
 }
 
@@ -126,7 +140,7 @@ async function handleToggleWishlist() {
 }
 
 async function handleBuyNow() {
-  if (!validateSelection()) return
+  if (buyingNow.value || addingToBag.value || !validateSelection()) return
 
   buyingNow.value = true
   try {
@@ -249,13 +263,13 @@ async function handleBuyNow() {
         </div>
 
         <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Button class="w-full sm:w-auto" :disabled="!inStock" @click="handleAddToCart">
-            {{ added ? 'Added to Bag ✓' : !inStock ? 'Out of Stock' : 'Add to Bag' }}
+          <Button class="w-full sm:w-auto" :disabled="!inStock || addingToBag || buyingNow" @click="handleAddToCart">
+            {{ added ? 'Added to Bag ✓' : addingToBag ? 'Adding…' : !inStock ? 'Out of Stock' : 'Add to Bag' }}
           </Button>
           <Button
             variant="outline"
             class="w-full sm:w-auto"
-            :disabled="!inStock || buyingNow"
+            :disabled="!inStock || buyingNow || addingToBag"
             @click="handleBuyNow"
           >
             {{ buyingNow ? 'Processing…' : 'Buy Now' }}

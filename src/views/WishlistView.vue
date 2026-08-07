@@ -26,7 +26,10 @@ async function handleAddToCart(item) {
 
 onMounted(async () => {
   try {
-    await wishlist.fetch()
+    // ensureLoaded (not fetch) — a ProductCard elsewhere may have already
+    // populated the store; re-fetching unconditionally here just flashes a
+    // "Loading…" state over data that was already correct.
+    await wishlist.ensureLoaded()
   } catch (e) {
     error.value = e.message
   }

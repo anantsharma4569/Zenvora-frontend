@@ -96,7 +96,7 @@ async function request(path, opts = {}) {
   return data.message ?? data.data ?? data
 }
 
-async function uploadFile(file) {
+async function doUpload(file) {
   const token = getAccessToken()
   const headers = {}
   if (token) headers['X-Zenvora-Token'] = token
@@ -112,6 +112,21 @@ async function uploadFile(file) {
     body: formData,
   })
   const data = await res.json().catch(() => ({}))
+  return { res, data }
+}
+
+async function uploadFile(file, _isRetry = false) {
+  let { res, data } = await doUpload(file)
+
+  // Same expired-access-token recovery as request() — without this, an
+  // upload that outlives the 1h access token fails outright even though
+  // every other API call in the app would have silently refreshed.
+  if (res.status === 401 && getRefreshToken() && !_isRetry) {
+    if (await tryRefresh()) {
+      ;({ res, data } = await doUpload(file))
+    }
+  }
+
   if (!res.ok) throw new Error(extractErrorMessage(data))
   return data.message.file_url
 }

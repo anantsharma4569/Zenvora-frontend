@@ -20,15 +20,21 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    // Shared by login/register/OTP-verify — all three return the identical
+    // { access_token, refresh_token, expires_in, user } shape.
+    _applySession(data) {
+      setTokens(data)
+      this.user = data.user
+      useCartStore().fetchCart()
+      useWishlistStore().fetch()
+    },
+
     async login(email, password) {
       this.loading = true
       this.error = null
       try {
         const data = await frappeCall.postMethod('zenvora.api.auth.login', { email, password })
-        setTokens(data)
-        this.user = data.user
-        useCartStore().fetchCart()
-        useWishlistStore().fetch()
+        this._applySession(data)
       } catch (e) {
         this.error = e.message
         throw e
@@ -42,16 +48,19 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       try {
         const data = await frappeCall.postMethod('zenvora.api.auth.register', { email, full_name, password, phone })
-        setTokens(data)
-        this.user = data.user
-        useCartStore().fetchCart()
-        useWishlistStore().fetch()
+        this._applySession(data)
       } catch (e) {
         this.error = e.message
         throw e
       } finally {
         this.loading = false
       }
+    },
+
+    // Passwordless login used by the guest-checkout OTP flow — `data` is
+    // whatever zenvora.api.guest_checkout.verify_checkout_otp returned.
+    async completeOtpLogin(data) {
+      this._applySession(data)
     },
 
     async logout() {

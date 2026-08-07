@@ -55,6 +55,11 @@ async function handleAddToCart(e) {
     return
   }
 
+  if (props.product.in_stock === false) {
+    quickAddError.value = 'Out of stock'
+    return
+  }
+
   quickAddError.value = null
   adding.value = true
   try {
@@ -113,6 +118,15 @@ async function handleAddToCart(e) {
       <div v-if="!product.image_1" class="flex h-full w-full items-center justify-center text-stone-400">
         No Image
       </div>
+
+      <div
+        v-if="product.in_stock === false"
+        class="absolute inset-0 flex items-center justify-center bg-white/60"
+      >
+        <span class="rounded bg-ink px-3 py-1 text-xs font-medium uppercase tracking-wide text-white">
+          Out of Stock
+        </span>
+      </div>
     </div>
 
     <h3 class="mt-3 text-sm font-medium text-ink">{{ product.product_name }}</h3>
@@ -141,10 +155,10 @@ async function handleAddToCart(e) {
 
     <button
       class="mt-3 w-full rounded-md border border-stone-300 py-2 text-sm font-medium text-ink transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-60"
-      :disabled="adding"
+      :disabled="adding || product.in_stock === false"
       @click="handleAddToCart"
     >
-      {{ adding ? 'Adding…' : 'Add to Bag' }}
+      {{ product.in_stock === false ? 'Out of Stock' : adding ? 'Adding…' : 'Add to Bag' }}
     </button>
     <p v-if="quickAddError" class="mt-1 text-xs text-red-600">{{ quickAddError }}</p>
   </RouterLink>

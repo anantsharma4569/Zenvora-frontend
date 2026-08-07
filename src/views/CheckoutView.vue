@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { Minus, Plus, X } from '@lucide/vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useOrders } from '@/composables/useOrders'
@@ -29,6 +30,10 @@ const placing = ref(false)
 const error = ref(null)
 
 onMounted(async () => {
+  // Re-fetch rather than trust whatever's already in the store — the cart
+  // could have been changed in another tab/session since it was last loaded.
+  cart.fetchCart()
+
   try {
     addresses.value = await getAddresses()
     const primary = addresses.value.find((a) => a.is_primary_address) || addresses.value[0]
@@ -93,15 +98,46 @@ async function placeOrder() {
 
     <div class="mt-8 space-y-8">
       <div class="space-y-3">
-        <div v-for="item in cart.items" :key="item.name" class="flex items-center justify-between text-sm">
+        <div v-for="item in cart.items" :key="item.name" class="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span class="text-stone-600">
             {{ item.product_name }}
             <span v-if="item.color || item.size" class="text-stone-400">
               ({{ [item.color, item.size].filter(Boolean).join(' · ') }})
             </span>
-            × {{ item.qty }}
           </span>
-          <span class="font-medium text-ink">{{ formatCurrency(item.price * item.qty) }}</span>
+
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                class="rounded border border-stone-300 p-1 text-ink hover:border-ink"
+                :aria-label="item.qty === 1 ? 'Remove item' : 'Decrease quantity'"
+                @click="cart.updateQty(item.name, item.qty - 1)"
+              >
+                <Minus class="h-3.5 w-3.5" />
+              </button>
+              <span class="w-5 text-center text-ink">{{ item.qty }}</span>
+              <button
+                type="button"
+                class="rounded border border-stone-300 p-1 text-ink hover:border-ink"
+                aria-label="Increase quantity"
+                @click="cart.updateQty(item.name, item.qty + 1)"
+              >
+                <Plus class="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <span class="w-20 text-right font-medium text-ink">{{ formatCurrency(item.price * item.qty) }}</span>
+
+            <button
+              type="button"
+              class="text-stone-400 hover:text-red-600"
+              aria-label="Remove from bag"
+              @click="cart.removeItem(item.name)"
+            >
+              <X class="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 

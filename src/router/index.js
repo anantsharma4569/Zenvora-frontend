@@ -84,6 +84,7 @@ const routes = [
     meta: { requiresAuth: true, title: 'Notifications' },
   },
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { title: 'Log In' } },
+  { path: '/verify', name: 'verify', component: () => import('@/views/VerifyView.vue'), meta: { title: 'Continue with a code' } },
   {
     path: '/register',
     name: 'register',

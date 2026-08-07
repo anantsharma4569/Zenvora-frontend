@@ -6,5 +6,13 @@ export function useInventory() {
     return frappeCall.method('zenvora.api.inventory.get_product_stock', { product })
   }
 
-  return { getProductStock }
+  // -> { [productName]: boolean } for a whole grid in one call
+  async function getProductsStock(products) {
+    if (!products.length) return {}
+    return frappeCall.method('zenvora.api.inventory.get_products_stock', {
+      products: JSON.stringify(products),
+    })
+  }
+
+  return { getProductStock, getProductsStock }
 }
