@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { frappeCall } from '@/utils/call'
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '@/utils/authTokens'
 import { useCartStore } from '@/stores/cartStore'
+import { useWishlistStore } from '@/stores/wishlistStore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -27,6 +28,7 @@ export const useAuthStore = defineStore('auth', {
         setTokens(data)
         this.user = data.user
         useCartStore().fetchCart()
+        useWishlistStore().fetch()
       } catch (e) {
         this.error = e.message
         throw e
@@ -43,6 +45,7 @@ export const useAuthStore = defineStore('auth', {
         setTokens(data)
         this.user = data.user
         useCartStore().fetchCart()
+        useWishlistStore().fetch()
       } catch (e) {
         this.error = e.message
         throw e
@@ -60,6 +63,7 @@ export const useAuthStore = defineStore('auth', {
       clearTokens()
       this.user = null
       useCartStore().reset()
+      useWishlistStore().reset()
     },
 
     async fetchMe() {

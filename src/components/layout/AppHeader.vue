@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { RouterLink } from 'vue-router'
-import { ShoppingBag, User, ChevronDown, Menu, X } from '@lucide/vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { ShoppingBag, User, ChevronDown, Menu, X, Heart, Search } from '@lucide/vue'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useCategories } from '@/composables/useCategories'
@@ -9,10 +9,20 @@ import { useCategories } from '@/composables/useCategories'
 const cart = useCartStore()
 const auth = useAuthStore()
 const { categories, fetchCategories } = useCategories()
+const router = useRouter()
 
 const categoriesOpen = ref(false)
 const mobileMenuOpen = ref(false)
 const headerEl = ref(null)
+const searchQuery = ref('')
+const mobileSearchQuery = ref('')
+
+function submitSearch(query) {
+  const trimmed = query.trim()
+  if (!trimmed) return
+  router.push({ path: '/shop', query: { search: trimmed } })
+  mobileMenuOpen.value = false
+}
 
 onMounted(() => {
   fetchCategories()
@@ -85,6 +95,19 @@ function closeMobileMenu() {
         </RouterLink>
       </nav>
 
+      <form
+        class="relative hidden w-full max-w-xs items-center md:flex"
+        @submit.prevent="submitSearch(searchQuery)"
+      >
+        <Search class="pointer-events-none absolute left-3 h-4 w-4 text-stone-400" />
+        <input
+          v-model="searchQuery"
+          type="search"
+          placeholder="Search products…"
+          class="w-full rounded-full border border-stone-300 bg-stone-50 py-1.5 pl-9 pr-3 text-sm text-ink placeholder:text-stone-400 focus:border-ink focus:outline-none"
+        />
+      </form>
+
       <div class="flex items-center gap-5">
         <RouterLink
           :to="auth.isAuthenticated ? '/account' : '/login'"
@@ -94,6 +117,10 @@ function closeMobileMenu() {
           <span class="hidden text-sm font-medium sm:inline">
             {{ auth.isAuthenticated ? auth.user?.full_name : 'Log In' }}
           </span>
+        </RouterLink>
+
+        <RouterLink :to="auth.isAuthenticated ? '/wishlist' : '/login'" class="flex items-center gap-2 text-ink">
+          <Heart class="h-5 w-5" />
         </RouterLink>
 
         <RouterLink to="/cart" class="relative flex items-center gap-2 text-ink">
@@ -115,7 +142,17 @@ function closeMobileMenu() {
 
     <!-- Mobile menu -->
     <div v-if="mobileMenuOpen" class="border-t border-stone-200 bg-stone-50 px-6 py-4 lg:hidden">
-      <p class="text-xs font-medium uppercase tracking-widest text-stone-400">Categories</p>
+      <form class="relative flex items-center md:hidden" @submit.prevent="submitSearch(mobileSearchQuery)">
+        <Search class="pointer-events-none absolute left-3 h-4 w-4 text-stone-400" />
+        <input
+          v-model="mobileSearchQuery"
+          type="search"
+          placeholder="Search products…"
+          class="w-full rounded-full border border-stone-300 bg-white py-2 pl-9 pr-3 text-sm text-ink placeholder:text-stone-400 focus:border-ink focus:outline-none"
+        />
+      </form>
+
+      <p class="mt-4 text-xs font-medium uppercase tracking-widest text-stone-400">Categories</p>
       <nav class="mt-3 flex flex-col gap-1">
         <RouterLink
           to="/shop"

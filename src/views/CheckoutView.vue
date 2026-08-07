@@ -64,7 +64,7 @@ async function placeOrder() {
   placing.value = true
   error.value = null
   try {
-    const items = cart.items.map((i) => ({ item_code: i.product, qty: i.qty, rate: i.price }))
+    const items = cart.items.map((i) => ({ item_code: i.product, qty: i.qty, rate: i.price, size: i.size }))
     const salesOrder = await createSalesOrder(
       items,
       selectedAddress.value,

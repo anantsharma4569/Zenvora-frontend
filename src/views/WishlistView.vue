@@ -2,31 +2,18 @@
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Heart } from '@lucide/vue'
-import { useWishlist } from '@/composables/useWishlist'
+import { useWishlistStore } from '@/stores/wishlistStore'
 import { useCartStore } from '@/stores/cartStore'
 import { formatCurrency } from '@/utils/currency'
 import AccountSidebar from '@/components/account/AccountSidebar.vue'
 
-const { getWishlist, removeFromWishlist } = useWishlist()
+const wishlist = useWishlistStore()
 const cart = useCartStore()
 
-const items = ref([])
-const loading = ref(true)
 const error = ref(null)
 
-async function load() {
-  loading.value = true
-  try {
-    items.value = await getWishlist()
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
-}
-
 async function handleRemove(name) {
-  items.value = await removeFromWishlist(name)
+  await wishlist.remove(name)
 }
 
 async function handleAddToCart(item) {
@@ -37,7 +24,13 @@ async function handleAddToCart(item) {
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  try {
+    await wishlist.fetch()
+  } catch (e) {
+    error.value = e.message
+  }
+})
 </script>
 
 <template>
@@ -48,14 +41,14 @@ onMounted(load)
       <div class="min-w-0 flex-1">
         <h1 class="font-display text-2xl font-semibold text-ink">Wishlist</h1>
 
-        <p v-if="loading" class="mt-8 text-stone-500">Loading…</p>
+        <p v-if="wishlist.loading" class="mt-8 text-stone-500">Loading…</p>
         <p v-else-if="error" class="mt-8 text-red-600">{{ error }}</p>
-        <p v-else-if="!items.length" class="mt-8 text-stone-500">
+        <p v-else-if="!wishlist.items.length" class="mt-8 text-stone-500">
           Nothing saved yet. <RouterLink to="/shop" class="text-pine-600 underline">Browse products</RouterLink>
         </p>
 
         <div v-else class="mt-6 grid grid-cols-2 gap-6 lg:grid-cols-3">
-          <div v-for="item in items" :key="item.name" class="group relative">
+          <div v-for="item in wishlist.items" :key="item.name" class="group relative">
             <button
               class="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-red-500 shadow"
               :aria-label="`Remove ${item.product_name} from wishlist`"

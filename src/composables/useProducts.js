@@ -6,21 +6,55 @@ const PRODUCT_FIELDS = [
   'on_sale', 'rating', 'review_count', 'image_1', 'image_2', 'description',
 ]
 
+function buildFilters({ category, search }) {
+  const filters = []
+  if (category) filters.push(['category', '=', category])
+  if (search) filters.push(['product_name', 'like', `%${search}%`])
+  return filters
+}
+
 export function useProducts() {
   const products = ref([])
   const loading = ref(false)
   const error = ref(null)
+  const hasMore = ref(false)
 
-  async function fetchProducts({ category, limit = 40, start = 0 } = {}) {
+  let query = {}
+
+  async function fetchProducts({ category, search, limit = 40 } = {}) {
+    query = { category, search, limit }
     loading.value = true
     error.value = null
     try {
-      products.value = await frappeCall.getList('Product', {
+      const filters = buildFilters(query)
+      const results = await frappeCall.getList('Product', {
         fields: JSON.stringify(PRODUCT_FIELDS),
-        filters: category ? JSON.stringify([['category', '=', category]]) : undefined,
+        filters: filters.length ? JSON.stringify(filters) : undefined,
         limit_page_length: limit,
-        limit_start: start,
+        limit_start: 0,
       })
+      products.value = results
+      hasMore.value = results.length === limit
+    } catch (e) {
+      error.value = e.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function loadMore() {
+    if (loading.value || !hasMore.value) return
+    loading.value = true
+    try {
+      const filters = buildFilters(query)
+      const results = await frappeCall.getList('Product', {
+        fields: JSON.stringify(PRODUCT_FIELDS),
+        filters: filters.length ? JSON.stringify(filters) : undefined,
+        limit_page_length: query.limit,
+        limit_start: products.value.length,
+      })
+      products.value = [...products.value, ...results]
+      hasMore.value = results.length === query.limit
     } catch (e) {
       error.value = e.message
     } finally {
@@ -32,5 +66,5 @@ export function useProducts() {
     return frappeCall.getDoc('Product', name)
   }
 
-  return { products, loading, error, fetchProducts, fetchProduct }
+  return { products, loading, error, hasMore, fetchProducts, loadMore, fetchProduct }
 }
